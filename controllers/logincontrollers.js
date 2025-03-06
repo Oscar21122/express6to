@@ -6,13 +6,17 @@ export const login = async (req, res) => {
         .request()
         .input("username", sql.VarChar, req.body.username)
         .query("SELECT * FROM Users where username=@username")
+
     if (data.recordset.length === 0) {
         return res.status(404).json({ error: "Usuario no encontrado" });
     }
 
-    console.log("Usuario en BD:", data.recordset[0]);
-    console.log("Usuario enviado:", req.body);
+    const user = data.recordset[0];
+    const isLogin = user.password === req.body.password;
 
-    let isLogin = (data.recordset[0].password === req.body.password) 
-    res.status(200).json({ isLogin : isLogin });
+    if (isLogin) {
+        res.status(200).json({ isLogin, user });
+    } else {
+        res.status(401).json({ isLogin, user: {} });
+    }
 };

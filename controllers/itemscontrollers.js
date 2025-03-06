@@ -24,12 +24,17 @@ export const getItem = async (req, res) => {
 
 export const postItem = async (req, res) => {
     const pool = await sqlConnect();
-    const data = await pool
+    await pool
         .request()
         .input("name", sql.VarChar, req.body.name)
         .input("price", sql.Decimal, req.body.price)
         .query("INSERT INTO Items (name, price) VALUES (@name, @price)")
-    res.status(201).json({ message: "Item creado exitosamente" });
+    const data = await pool
+        .request()
+        .input("name", sql.VarChar, req.body.name)
+        .query("SELECT * FROM Items WHERE name = @name")
+    // console.log(data.recordset)
+    res.status(201).json({ operation: true, item : data.recordset });
 }
 
 export const putItem = async (req, res) => {
@@ -49,5 +54,5 @@ export const deleteItem = async (req, res) => {
         .request()
         .input("id", sql.Int, req.params.id)
         .query("DELETE FROM Items Where id = @id")
-    res.status(201).json({ message: "Item borrado exitosamente" });
+    res.status(200).json({ operation: true });
 }
