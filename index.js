@@ -6,7 +6,8 @@ import cors from "cors"
 import indexRoutes from "./routes/indexroutes.js"
 import itemsRoutes from "./routes/itemsroutes.js"
 import items2Routes from "./routes/items2routes.js"
-import loginRoutes from "./routes/loginroutes.js"
+import loginRoutes from "./routes/authroutes.js"
+import signupRoutes from "./routes/authroutes.js"
 import morgan from "morgan"
 import { connectDB } from "./utils/mongodb.js"
 
@@ -21,6 +22,7 @@ app.use(indexRoutes)
 app.use(itemsRoutes)
 app.use(items2Routes)
 app.use(loginRoutes)
+app.use(signupRoutes)
 
 app.listen(5001, console.log("http://localhost:5001"));
 
