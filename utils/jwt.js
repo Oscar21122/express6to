@@ -16,7 +16,7 @@ validateJWT.use((req, res, next) => {
         if (e) {
             res.status(401).json({ msg: "mal token" + e.message });
         } else {
-            
+            next();
         }
     });
 });
