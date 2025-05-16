@@ -1,58 +1,73 @@
-import { sqlConnect, sql } from "../utils/sql.js"
+import db from "../utils/firebase.js";
 
 export const getItems = async (req, res) => {
     try {
-        const pool = await sqlConnect();
-        const data = await pool.request().query("SELECT * FROM Items");
+        const itemsRef = db.collection('items');
+        const snapshot = await itemsRef.get();
+        const items = [];
         
-        console.log("Users data:", data.recordset); // Ver si hay datos
-        res.json(data.recordset);
+        snapshot.forEach(doc => {
+            items.push({ id: doc.id, ...doc.data() });
+        });
+        
+        res.json(items);
     } catch (error) {
-        console.error("Error al obtener datos:", error);
+        console.error("Error al obtener items:", error);
         res.status(500).json({ error: "Error interno del servidor" });
     }
 };
 
 export const getItem = async (req, res) => {
-    const pool = await sqlConnect();
-    const data = await pool
-        .request()
-        .input("id", sql.Int, req.params.id)
-        .query("SELECT * FROM Items Where id = @id")
-    res.json(data.recordset)
-}
+    try {
+        const itemRef = db.collection('items').doc(req.params.id);
+        const doc = await itemRef.get();
+        
+        if (!doc.exists) {
+            return res.status(404).json({ error: "Item no encontrado" });
+        }
+        
+        res.json({ id: doc.id, ...doc.data() });
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener item" });
+    }
+};
 
 export const postItem = async (req, res) => {
-    const pool = await sqlConnect();
-    await pool
-        .request()
-        .input("name", sql.VarChar, req.body.name)
-        .input("price", sql.Decimal, req.body.price)
-        .query("INSERT INTO Items (name, price) VALUES (@name, @price)")
-    const data = await pool
-        .request()
-        .input("name", sql.VarChar, req.body.name)
-        .query("SELECT * FROM Items WHERE name = @name")
-    // console.log(data.recordset)
-    res.status(201).json({ operation: true, item : data.recordset });
-}
+    try {
+        const itemRef = db.collection('items').doc();
+        await itemRef.set({
+            name: req.body.name,
+            price: req.body.price,
+            createdAt: new Date()
+        });
+        
+        const newItem = await itemRef.get();
+        res.status(201).json({ operation: true, item: { id: newItem.id, ...newItem.data() } });
+    } catch (error) {
+        res.status(500).json({ error: "Error al crear item" });
+    }
+};
 
 export const putItem = async (req, res) => {
-    const pool = await sqlConnect();
-    const data = await pool
-        .request()
-        .input("id", sql.Int, req.params.id)
-        .input("name", sql.VarChar, req.body.name)
-        .input("price", sql.Decimal, req.body.price)
-        .query("UPDATE Items SET name=@name, price=@price Where id = @id")
-    res.status(201).json({ message: "Item actualizado exitosamente" });
-}
+    try {
+        const itemRef = db.collection('items').doc(req.params.id);
+        await itemRef.update({
+            name: req.body.name,
+            price: req.body.price,
+            updatedAt: new Date()
+        });
+        
+        res.status(201).json({ message: "Item actualizado exitosamente" });
+    } catch (error) {
+        res.status(500).json({ error: "Error al actualizar item" });
+    }
+};
 
 export const deleteItem = async (req, res) => {
-    const pool = await sqlConnect();
-    const data = await pool
-        .request()
-        .input("id", sql.Int, req.params.id)
-        .query("DELETE FROM Items Where id = @id")
-    res.status(200).json({ operation: true });
-}
+    try {
+        await db.collection('items').doc(req.params.id).delete();
+        res.status(200).json({ operation: true });
+    } catch (error) {
+        res.status(500).json({ error: "Error al eliminar item" });
+    }
+};

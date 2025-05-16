@@ -1,28 +1,24 @@
-// const express = require("express");
-
-import "dotenv/config"
-import express from "express"
-import cors from "cors"
-import indexRoutes from "./routes/indexroutes.js"
-import itemsRoutes from "./routes/itemsroutes.js"
-import items2Routes from "./routes/items2routes.js"
-import loginRoutes from "./routes/authroutes.js"
-import signupRoutes from "./routes/authroutes.js"
-import morgan from "morgan"
-import { connectDB } from "./utils/mongodb.js"
+import "dotenv/config";
+import express from "express";
+import cors from "cors";
+import indexRoutes from "./routes/indexroutes.js";
+import itemsRoutes from "./routes/itemsroutes.js";
+import authRoutes from "./routes/authroutes.js"; 
+import morgan from "morgan";
 
 const app = express();
 
-connectDB()
-
+// Middlewares
 app.use(cors());
-app.use(morgan("dev"))
-app.use(express.json())
-app.use(indexRoutes)
-app.use(itemsRoutes)
-app.use(items2Routes)
-app.use(loginRoutes)
-app.use(signupRoutes)
+app.use(morgan("dev"));
+app.use(express.json());
 
-app.listen(5001, console.log("http://localhost:5001"));
+// Rutas
+app.use(indexRoutes);
+app.use(itemsRoutes);
+app.use(authRoutes); 
 
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor listo en http://localhost:${PORT}`);
+});
